@@ -54,9 +54,9 @@ module Adhearsion
 
       @result = ask prompt, grammar: grammar, mode: :voice
       if @result.match?
-        @state.match
+        @state.match!
       else
-        @state.reject # FIXME: handle no-input as well
+        @state.reject! # FIXME: handle no-input as well
       end
     end
 
@@ -97,9 +97,9 @@ module Adhearsion
         after_transition :prompting => :input_error do |state|
           state.call_controller.increment_errors
           if state.call_controller.continue?
-            state.reprompt
+            state.reprompt!
           else
-            state.failure
+            state.failure!
           end
         end
 
