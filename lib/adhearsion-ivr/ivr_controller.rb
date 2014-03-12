@@ -72,8 +72,12 @@ module Adhearsion
       logger.debug "Prompt: #{prompt.inspect}"
 
       @result = ask prompt, grammar: grammar, mode: :voice
-      if @result.match?
+      logger.debug "Got result #{@result.inspect}"
+      case @result.status
+      when :match
         match!
+      when :stop
+        logger.info "Prompt was stopped forcibly. Exiting cleanly..."
       else
         nomatch!
       end

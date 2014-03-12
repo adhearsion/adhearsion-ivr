@@ -157,13 +157,37 @@ describe Adhearsion::IVRController do
       end
 
       context "that is a stop" do
+        let(:controller_class) do
+          expected_prompts = self.expected_prompts
+
+          Class.new(Adhearsion::IVRController) do
+            expected_prompts.each do |prompt|
+              prompts << prompt
+            end
+
+            on_complete do |result|
+              raise "Got complete"
+            end
+
+            on_failure do
+              raise "Got failure"
+            end
+
+            def grammar
+              :some_grammar
+            end
+          end
+        end
+
         let(:result) do
           AdhearsionASR::Result.new.tap do |res|
             res.status = :stop
           end
         end
 
-        it "falls through silently"
+        it "falls through silently" do
+          controller.run
+        end
       end
     end
 
