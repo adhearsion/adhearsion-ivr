@@ -91,7 +91,7 @@ module Adhearsion
     end
 
     def grammar
-      raise "You must override this method and provide a grammar"
+      raise NotImplementedError, "You must override #grammar and provide a grammar"
     end
 
     def increment_errors

@@ -45,7 +45,6 @@ describe Adhearsion::IVRController do
 
     let(:expected_grammar) { :some_grammar }
 
-    # TODO: Test grammar absence
     # TODO: Test adjusting retry limit
     # TODO: Test mismatch between prompt and retry count
 
@@ -243,6 +242,24 @@ describe Adhearsion::IVRController do
         controller.should_receive(:ask).once.with('two', grammar: expected_grammar, mode: :voice).and_return noinput_result
         controller.should_receive(:ask).once.with('three', grammar: expected_grammar, mode: :voice).and_return noinput_result
         controller.run
+      end
+    end
+
+    context "when no grammar is provided" do
+      let(:controller_class) do
+        Class.new(Adhearsion::IVRController) do
+          prompts << "Hello"
+
+          on_complete do |result|
+          end
+
+          on_failure do
+          end
+        end
+      end
+
+      it "should raise NotImplementedError" do
+        expect { controller.run }.to raise_error(NotImplementedError)
       end
     end
 
