@@ -147,13 +147,37 @@ describe Adhearsion::IVRController do
       end
 
       context "that is a hangup" do
+        let(:controller_class) do
+          expected_prompts = self.expected_prompts
+
+          Class.new(Adhearsion::IVRController) do
+            expected_prompts.each do |prompt|
+              prompts << prompt
+            end
+
+            on_complete do |result|
+              raise "Got complete"
+            end
+
+            on_failure do
+              raise "Got failure"
+            end
+
+            def grammar
+              :some_grammar
+            end
+          end
+        end
+
         let(:result) do
           AdhearsionASR::Result.new.tap do |res|
             res.status = :hangup
           end
         end
 
-        it "falls through silently"
+        it "raises Adhearsion::Call::Hangup" do
+          expect { controller.run }.to raise_error(Adhearsion::Call::Hangup)
+        end
       end
 
       context "that is a stop" do

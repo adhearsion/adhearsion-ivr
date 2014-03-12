@@ -78,6 +78,9 @@ module Adhearsion
         match!
       when :stop
         logger.info "Prompt was stopped forcibly. Exiting cleanly..."
+      when :hangup
+        logger.info "Call was hung up mid-prompt. Exiting controller flow..."
+        raise Adhearsion::Call::Hangup
       else
         nomatch!
       end
