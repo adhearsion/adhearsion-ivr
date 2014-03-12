@@ -108,7 +108,7 @@ module Adhearsion
     end
 
     def failure_callback
-      instance_exec &self.class.failure_callback
+      instance_exec &self.class.failure_callback if self.class.failure_callback
     end
   end
 end
