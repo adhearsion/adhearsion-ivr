@@ -24,8 +24,7 @@ If the caller fails to provde input within 3 attempts, he hears a taunting messa
 ```Ruby
 class SimplePrompt < Adhearsion::IVRController
   prompts << "Please enter a number 1 through 3"
-  grammar = one_through_five_grammar
-  
+
   on_complete do |result|
     case result.nlsml.interpretations.first[:instance] # FIXME?
     when 1
