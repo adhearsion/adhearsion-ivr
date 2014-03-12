@@ -27,19 +27,13 @@ module Adhearsion
       def on_complete(&block)
         @completion_callback = block
       end
-
-      def completion_callback
-        @completion_callback
-      end
+      attr_reader :completion_callback
 
       # Called when the caller errors more than the number of allowed attempts
       def on_failure(&block)
         @failure_callback = block
       end
-
-      def failure_callback
-        @failure_callback
-      end
+      attr_reader :failure_callback
     end
 
     state_machine initial: :prompting do
