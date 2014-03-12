@@ -26,11 +26,6 @@ module Adhearsion
         @@completion_callback = block
       end
 
-      # Called when the caller errors on input, whether a reject or a no-input
-      def on_error(&block)
-        @@error_callback = block
-      end
-
       # Called when the caller errors more than the number of allowed attempts
       def on_failure(&block)
         @@failure_callback = block
