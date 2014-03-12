@@ -46,30 +46,32 @@ describe Adhearsion::IVRController do
     let(:expected_grammar) { :some_grammar }
 
     context "when an utterance is received" do
+      let(:nlsml) do
+        RubySpeech::NLSML.draw do
+          interpretation confidence: 1 do
+            input 'Paris', mode: :voice
+            instance 'Paris'
+          end
+        end
+      end
+
+      let(:match_result) do
+        AdhearsionASR::Result.new.tap do |res|
+          res.status         = :match
+          res.mode           = :voice
+          res.confidence     = 1
+          res.utterance      = 'Paris'
+          res.interpretation = 'Paris'
+          res.nlsml          = nlsml
+        end
+      end
+
       before do
         controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice).and_return result
       end
 
       context "that is a match" do
-        let :nlsml do
-          RubySpeech::NLSML.draw do
-            interpretation confidence: 1 do
-              input 'Paris', mode: :voice
-              instance 'Paris'
-            end
-          end
-        end
-
-        let(:result) do
-          AdhearsionASR::Result.new.tap do |res|
-            res.status         = :match
-            res.mode           = :voice
-            res.confidence     = 1
-            res.utterance      = 'Paris'
-            res.interpretation = 'Paris'
-            res.nlsml          = nlsml
-          end
-        end
+        let(:result) { match_result }
 
         it "passes the Result object to the on_complete block" do
           controller.should_receive(:say).once.with "Let's go to Paris"
@@ -85,11 +87,26 @@ describe Adhearsion::IVRController do
         end
 
         context "followed by a match" do
-          it "re-prompts using the next prompt, and then passes the second Result to the on_complete block"
+          before do
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return match_result
+          end
+
+          it "re-prompts using the next prompt, and then passes the second Result to the on_complete block" do
+            controller.should_receive(:say).once.with "Let's go to Paris"
+            controller.run
+          end
         end
 
         context "until it hits the maximum number of attempts" do
-          it "invokes the on_failure block"
+          before do
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
+            controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice).and_return result
+          end
+
+          it "invokes the on_failure block" do
+            controller.should_receive(:say).once.with apology_announcement
+            controller.run
+          end
         end
       end
 
@@ -101,11 +118,26 @@ describe Adhearsion::IVRController do
         end
 
         context "followed by a match" do
-          it "re-prompts using the next prompt, and then passes the second Result to the on_complete block"
+          before do
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return match_result
+          end
+
+          it "re-prompts using the next prompt, and then passes the second Result to the on_complete block" do
+            controller.should_receive(:say).once.with "Let's go to Paris"
+            controller.run
+          end
         end
 
         context "until it hits the maximum number of attempts" do
-          it "invokes the on_failure block"
+          before do
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
+            controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice).and_return result
+          end
+
+          it "invokes the on_failure block" do
+            controller.should_receive(:say).once.with apology_announcement
+            controller.run
+          end
         end
       end
 
