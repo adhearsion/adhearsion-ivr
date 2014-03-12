@@ -45,32 +45,37 @@ describe Adhearsion::IVRController do
 
     let(:expected_grammar) { :some_grammar }
 
-    # TODO: Test lambda prompts & their binding
     # TODO: Test grammar absence
     # TODO: Test adjusting retry limit
     # TODO: Test mismatch between prompt and retry count
 
+    let(:nlsml) do
+      RubySpeech::NLSML.draw do
+        interpretation confidence: 1 do
+          input 'Paris', mode: :voice
+          instance 'Paris'
+        end
+      end
+    end
+
+    let(:match_result) do
+      AdhearsionASR::Result.new.tap do |res|
+        res.status         = :match
+        res.mode           = :voice
+        res.confidence     = 1
+        res.utterance      = 'Paris'
+        res.interpretation = 'Paris'
+        res.nlsml          = nlsml
+      end
+    end
+
+    let(:noinput_result) do
+      AdhearsionASR::Result.new.tap do |res|
+        res.status = :noinput
+      end
+    end
+
     context "when an utterance is received" do
-      let(:nlsml) do
-        RubySpeech::NLSML.draw do
-          interpretation confidence: 1 do
-            input 'Paris', mode: :voice
-            instance 'Paris'
-          end
-        end
-      end
-
-      let(:match_result) do
-        AdhearsionASR::Result.new.tap do |res|
-          res.status         = :match
-          res.mode           = :voice
-          res.confidence     = 1
-          res.utterance      = 'Paris'
-          res.interpretation = 'Paris'
-          res.nlsml          = nlsml
-        end
-      end
-
       before do
         controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice).and_return result
       end
@@ -85,11 +90,7 @@ describe Adhearsion::IVRController do
       end
 
       context "that is a noinput" do
-        let(:result) do
-          AdhearsionASR::Result.new.tap do |res|
-            res.status = :noinput
-          end
-        end
+        let(:result) { noinput_result }
 
         context "followed by a match" do
           before do
@@ -212,6 +213,36 @@ describe Adhearsion::IVRController do
         it "falls through silently" do
           controller.run
         end
+      end
+    end
+
+    context "when the prompts are callable" do
+      let(:controller_class) do
+        Class.new(Adhearsion::IVRController) do
+          prompts << -> { thing }
+
+          on_complete do |result|
+          end
+
+          on_failure do
+          end
+
+          def grammar
+            :some_grammar
+          end
+
+          def thing
+            @things ||= %w{one two three}
+            @things.shift
+          end
+        end
+      end
+
+      it "should evaluate the prompt repeatedly in the context of the controller instance" do
+        controller.should_receive(:ask).once.with('one', grammar: expected_grammar, mode: :voice).and_return noinput_result
+        controller.should_receive(:ask).once.with('two', grammar: expected_grammar, mode: :voice).and_return noinput_result
+        controller.should_receive(:ask).once.with('three', grammar: expected_grammar, mode: :voice).and_return noinput_result
+        controller.run
       end
     end
 
