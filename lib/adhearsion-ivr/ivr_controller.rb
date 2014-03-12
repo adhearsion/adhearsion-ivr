@@ -40,7 +40,7 @@ module Adhearsion
       event(:match)    { transition prompting: :complete }
       event(:reprompt) { transition input_error: :prompting }
       event(:nomatch)  { transition prompting: :input_error }
-      event(:no_input) { transition prompting: :input_error }
+      event(:noinput)  { transition prompting: :input_error }
       event(:failure)  { transition prompting: :failure, input_error: :failure }
 
       after_transition :prompting => :input_error do |controller|
@@ -85,8 +85,12 @@ module Adhearsion
       when :hangup
         logger.info "Call was hung up mid-prompt. Exiting controller flow..."
         raise Adhearsion::Call::Hangup
-      else
+      when :nomatch
         nomatch!
+      when :noinput
+        noinput!
+      else
+        raise "Unrecognized result status: #{@result.status}"
       end
       @result
     end
