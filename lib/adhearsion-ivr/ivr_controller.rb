@@ -6,8 +6,6 @@ module Adhearsion
     class << self
       attr_accessor :error_limit
   
-      @@max_attempts = 3
-  
       # list of prompts to be played to the caller.
       # this should have one prompt for each attempt
       # in case there are not enough prompts, the final prompt will be re-used until
@@ -18,6 +16,7 @@ module Adhearsion
       end
   
       # maximum number of attempts to prompt the caller for input
+      @@max_attempts = 3
       def max_attempts(num)
         @@max_attempts = num
       end
