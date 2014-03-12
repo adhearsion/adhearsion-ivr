@@ -21,9 +21,13 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_runtime_dependency 'activesupport', [">= 3.0.0", "< 5.0.0"]
   s.add_runtime_dependency 'adhearsion', ["~> 2.0"]
+  s.add_runtime_dependency 'adhearsion-asr', ["~> 1.0"]
   s.add_runtime_dependency 'state_machine'
 
-  s.add_development_dependency 'rspec', ["~> 2.11"]
+  s.add_development_dependency %q<bundler>, ["~> 1.0"]
+  s.add_development_dependency %q<rspec>, ["~> 2.11"]
+  s.add_development_dependency %q<rake>, [">= 0"]
+  s.add_development_dependency %q<guard-rspec>
+  s.add_development_dependency %q<rb-fsevent>, ['~> 0.9']
 end
