@@ -45,7 +45,6 @@ describe Adhearsion::IVRController do
 
     let(:expected_grammar) { :some_grammar }
 
-    # TODO: Test adjusting retry limit
     # TODO: Test mismatch between prompt and retry count
 
     let(:nlsml) do
@@ -103,14 +102,52 @@ describe Adhearsion::IVRController do
         end
 
         context "until it hits the maximum number of attempts" do
-          before do
-            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
-            controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice).and_return result
+          context "using the default of 3 attempts" do
+            before do
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice).and_return result
+            end
+
+            it "invokes the on_failure block" do
+              controller.should_receive(:say).once.with apology_announcement
+              controller.run
+            end
           end
 
-          it "invokes the on_failure block" do
-            controller.should_receive(:say).once.with apology_announcement
-            controller.run
+          context "when that value is different from the default" do
+            let(:controller_class) do
+              expected_prompts = self.expected_prompts
+              apology_announcement = self.apology_announcement
+
+              Class.new(Adhearsion::IVRController) do
+                expected_prompts.each do |prompt|
+                  prompts << prompt
+                end
+
+                max_attempts 2
+
+                on_complete do |result|
+                  say "Let's go to #{result.utterance}"
+                end
+
+                on_failure do
+                  say apology_announcement
+                end
+
+                def grammar
+                  :some_grammar
+                end
+              end
+            end
+
+            before do
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
+            end
+
+            it "invokes the on_failure block" do
+              controller.should_receive(:say).once.with apology_announcement
+              controller.run
+            end
           end
         end
       end
@@ -134,14 +171,52 @@ describe Adhearsion::IVRController do
         end
 
         context "until it hits the maximum number of attempts" do
-          before do
-            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
-            controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice).and_return result
+          context "using the default of 3 attempts" do
+            before do
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice).and_return result
+            end
+
+            it "invokes the on_failure block" do
+              controller.should_receive(:say).once.with apology_announcement
+              controller.run
+            end
           end
 
-          it "invokes the on_failure block" do
-            controller.should_receive(:say).once.with apology_announcement
-            controller.run
+          context "when that value is different from the default" do
+            let(:controller_class) do
+              expected_prompts = self.expected_prompts
+              apology_announcement = self.apology_announcement
+
+              Class.new(Adhearsion::IVRController) do
+                expected_prompts.each do |prompt|
+                  prompts << prompt
+                end
+
+                max_attempts 2
+
+                on_complete do |result|
+                  say "Let's go to #{result.utterance}"
+                end
+
+                on_failure do
+                  say apology_announcement
+                end
+
+                def grammar
+                  :some_grammar
+                end
+              end
+            end
+
+            before do
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
+            end
+
+            it "invokes the on_failure block" do
+              controller.should_receive(:say).once.with apology_announcement
+              controller.run
+            end
           end
         end
       end
