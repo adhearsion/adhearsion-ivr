@@ -43,9 +43,9 @@ class SimplePrompt < Adhearsion::IVRController
     dial 'sip:kindergarten_teachers@elementaryschool.com'
   end
   
-  def one_through_five_grammar
+  def grammar
     RubySpeech::GRXML.draw do
-      # ... pretend I put a valid GRXML grammar here
+      # ... put a valid GRXML grammar here
     end
   end
 end
@@ -81,7 +81,7 @@ class EscalatedPrompt < Adhearsion::IVRController
   
   def grammar
     RubySpeech::GRXML.draw do
-      # ... pretend I put a valid GRXML grammar here
+      # ... put a valid GRXML grammar here
     end
   end
 end
