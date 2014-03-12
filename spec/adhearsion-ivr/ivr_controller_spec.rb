@@ -45,8 +45,6 @@ describe Adhearsion::IVRController do
 
     let(:expected_grammar) { :some_grammar }
 
-    # TODO: Test mismatch between prompt and retry count
-
     let(:nlsml) do
       RubySpeech::NLSML.draw do
         interpretation confidence: 1 do
@@ -96,6 +94,20 @@ describe Adhearsion::IVRController do
           end
 
           it "re-prompts using the next prompt, and then passes the second Result to the on_complete block" do
+            controller.should_receive(:say).once.with "Let's go to Paris"
+            controller.run
+          end
+        end
+
+        context "when there are not enough prompts available for all retries" do
+          let(:expected_prompts) { [SecureRandom.uuid, SecureRandom.uuid] }
+
+          before do
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return match_result
+          end
+
+          it "reuses the last prompt" do
             controller.should_receive(:say).once.with "Let's go to Paris"
             controller.run
           end
@@ -165,6 +177,20 @@ describe Adhearsion::IVRController do
           end
 
           it "re-prompts using the next prompt, and then passes the second Result to the on_complete block" do
+            controller.should_receive(:say).once.with "Let's go to Paris"
+            controller.run
+          end
+        end
+
+        context "when there are not enough prompts available for all retries" do
+          let(:expected_prompts) { [SecureRandom.uuid, SecureRandom.uuid] }
+
+          before do
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return match_result
+          end
+
+          it "reuses the last prompt" do
             controller.should_receive(:say).once.with "Let's go to Paris"
             controller.run
           end
