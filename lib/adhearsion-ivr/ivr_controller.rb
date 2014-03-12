@@ -47,7 +47,7 @@ module Adhearsion
       
     def deliver_prompt
       prompt = @@prompts[@errors] || @@prompts.last
-      prompt = prompt.call if prompt.respond_to? :call
+      prompt = instance_exec(&prompt) if prompt.respond_to? :call
       logger.debug "Prompt: #{prompt.inspect}"
   
       @result = ask prompt, grammar: grammar, mode: :voice
@@ -67,7 +67,7 @@ module Adhearsion
     end
   
     def completion_callback
-      @@completion_callback.call @result
+      instance_exec @result, &@@completion_callback
     end
   
     def failure_callback
@@ -92,12 +92,12 @@ module Adhearsion
         event(:no_input) { transition prompting: :input_error }
         event(:failure)  { transition prompting: :failure }
   
-        after_transition any => :input_error do |state|
+        after_transition :prompting => :input_error do |state|
           state.call_controller.increment_errors
           if state.call_controller.continue?
-            reprompt
+            state.reprompt
           else
-            failure
+            state.failure
           end
         end
   
