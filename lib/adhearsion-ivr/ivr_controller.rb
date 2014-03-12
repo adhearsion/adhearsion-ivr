@@ -10,25 +10,35 @@ module Adhearsion
       # this should have one prompt for each attempt
       # in case there are not enough prompts, the final prompt will be re-used until
       # the max_attempts are exceeded.
-      @@prompts = []
       def prompts
-        @@prompts
+        @prompts ||= []
       end
 
       # maximum number of attempts to prompt the caller for input
-      @@max_attempts = 3
-      def max_attempts(num)
-        @@max_attempts = num
+      def max_attempts(num = nil)
+        if num
+          @max_attempts = num
+        else
+          @max_attempts || 3
+        end
       end
 
       # called when the caller successfully provides input
       def on_complete(&block)
-        @@completion_callback = block
+        @completion_callback = block
+      end
+
+      def completion_callback
+        @completion_callback
       end
 
       # Called when the caller errors more than the number of allowed attempts
       def on_failure(&block)
-        @@failure_callback = block
+        @failure_callback = block
+      end
+
+      def failure_callback
+        @failure_callback
       end
     end
 
@@ -67,7 +77,7 @@ module Adhearsion
     end
 
     def deliver_prompt
-      prompt = @@prompts[@errors] || @@prompts.last
+      prompt = self.class.prompts[@errors] || self.class.prompts.last
       prompt = instance_exec(&prompt) if prompt.respond_to? :call
       logger.debug "Prompt: #{prompt.inspect}"
 
@@ -95,15 +105,15 @@ module Adhearsion
     end
 
     def continue?
-      @errors < @@max_attempts
+      @errors < self.class.max_attempts
     end
 
     def completion_callback
-      instance_exec @result, &@@completion_callback
+      instance_exec @result, &self.class.completion_callback
     end
 
     def failure_callback
-      instance_exec &@@failure_callback
+      instance_exec &self.class.failure_callback
     end
   end
 end
