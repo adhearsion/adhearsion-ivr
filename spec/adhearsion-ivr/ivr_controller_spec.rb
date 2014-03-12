@@ -45,6 +45,11 @@ describe Adhearsion::IVRController do
 
     let(:expected_grammar) { :some_grammar }
 
+    # TODO: Test lambda prompts & their binding
+    # TODO: Test grammar absence
+    # TODO: Test adjusting retry limit
+    # TODO: Test mismatch between prompt and retry count
+
     context "when an utterance is received" do
       let(:nlsml) do
         RubySpeech::NLSML.draw do
