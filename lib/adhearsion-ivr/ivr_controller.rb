@@ -96,7 +96,7 @@ module Adhearsion
     end
 
     def failure_callback
-      instance_exec @result, &@@failure_callback
+      instance_exec &@@failure_callback
     end
   end
 end
