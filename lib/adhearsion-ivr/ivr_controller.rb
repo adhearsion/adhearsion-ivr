@@ -88,6 +88,7 @@ module Adhearsion
       else
         nomatch!
       end
+      @result
     end
 
     def grammar
@@ -103,7 +104,7 @@ module Adhearsion
     end
 
     def completion_callback
-      instance_exec @result, &self.class.completion_callback
+      instance_exec @result, &self.class.completion_callback if self.class.completion_callback
     end
 
     def failure_callback

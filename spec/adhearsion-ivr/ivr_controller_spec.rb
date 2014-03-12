@@ -263,6 +263,26 @@ describe Adhearsion::IVRController do
       end
     end
 
+    context "when no complete callback is provided" do
+      let(:controller_class) do
+        Class.new(Adhearsion::IVRController) do
+          prompts << "Hello"
+
+          on_failure do
+          end
+
+          def grammar
+            :some_grammar
+          end
+        end
+      end
+
+      it "should simply return the result" do
+        controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice).and_return match_result
+        controller.run.should be(match_result)
+      end
+    end
+
     context "when the call is dead" do
       before { call.terminate }
 
