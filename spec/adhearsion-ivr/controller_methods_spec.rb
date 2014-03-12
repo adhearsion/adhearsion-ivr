@@ -76,6 +76,58 @@ describe Adhearsion::IVRController do
           controller.run
         end
       end
+
+      context "that is a noinput" do
+        let(:result) do
+          AdhearsionASR::Result.new.tap do |res|
+            res.status = :noinput
+          end
+        end
+
+        context "followed by a match" do
+          it "re-prompts using the next prompt, and then passes the second Result to the on_complete block"
+        end
+
+        context "until it hits the maximum number of attempts" do
+          it "invokes the on_failure block"
+        end
+      end
+
+      context "that is a nomatch" do
+        let(:result) do
+          AdhearsionASR::Result.new.tap do |res|
+            res.status = :nomatch
+          end
+        end
+
+        context "followed by a match" do
+          it "re-prompts using the next prompt, and then passes the second Result to the on_complete block"
+        end
+
+        context "until it hits the maximum number of attempts" do
+          it "invokes the on_failure block"
+        end
+      end
+
+      context "that is a hangup" do
+        let(:result) do
+          AdhearsionASR::Result.new.tap do |res|
+            res.status = :hangup
+          end
+        end
+
+        it "falls through silently"
+      end
+
+      context "that is a stop" do
+        let(:result) do
+          AdhearsionASR::Result.new.tap do |res|
+            res.status = :stop
+          end
+        end
+
+        it "falls through silently"
+      end
     end
 
     context "when the call is dead" do
