@@ -1,0 +1,4 @@
+en:
+  test:
+    audio: '/path/to/test.wav'
+    text: 'Test'
