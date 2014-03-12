@@ -56,7 +56,7 @@ module Adhearsion
       if @result.match?
         @state.match!
       else
-        @state.reject! # FIXME: handle no-input as well
+        @state.reject!
       end
     end
 
@@ -73,7 +73,7 @@ module Adhearsion
     end
 
     def failure_callback
-      @@failure_callback.call
+      instance_exec @result, &@@failure_callback
     end
 
     def max_attempts
@@ -81,7 +81,7 @@ module Adhearsion
     end
 
     def continue?
-      @errors >= max_attempts
+      @errors < max_attempts
     end
 
     class InputState
@@ -92,7 +92,7 @@ module Adhearsion
         event(:reprompt) { transition input_error: :prompting }
         event(:reject)   { transition prompting: :input_error }
         event(:no_input) { transition prompting: :input_error }
-        event(:failure)  { transition prompting: :failure }
+        event(:failure)  { transition prompting: :failure, input_error: :failure }
 
         after_transition :prompting => :input_error do |state|
           state.call_controller.increment_errors
@@ -111,7 +111,7 @@ module Adhearsion
           state.call_controller.completion_callback
         end
 
-        after_transition :prompting => :failure do |state|
+        after_transition any => :failure do |state|
           state.call_controller.failure_callback
         end
       end
