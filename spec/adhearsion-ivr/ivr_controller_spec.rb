@@ -40,7 +40,7 @@ describe Adhearsion::IVRController do
       Adhearsion::Plugin.init_plugins
     end
 
-    let(:expected_prompts) { ['Where would you like to go?', 'Sorry, where was that?', "I'm sorry, I didn't understand. Which city would you like to fly to?"] }
+    let(:expected_prompts) { [SecureRandom.uuid, SecureRandom.uuid, SecureRandom.uuid] }
     let(:apology_announcement) { "Sorry, I couldn't understand where you would like to go. I'll put you through to a human." }
 
     let(:expected_grammar) { :some_grammar }
