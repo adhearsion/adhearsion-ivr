@@ -45,6 +45,39 @@ describe Adhearsion::IVRController do
 
     let(:expected_grammar) { :some_grammar }
 
+    context "when an utterance is received" do
+      before do
+        controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice).and_return result
+      end
+
+      context "that is a match" do
+        let :nlsml do
+          RubySpeech::NLSML.draw do
+            interpretation confidence: 1 do
+              input 'Paris', mode: :voice
+              instance 'Paris'
+            end
+          end
+        end
+
+        let(:result) do
+          AdhearsionASR::Result.new.tap do |res|
+            res.status         = :match
+            res.mode           = :voice
+            res.confidence     = 1
+            res.utterance      = 'Paris'
+            res.interpretation = 'Paris'
+            res.nlsml          = nlsml
+          end
+        end
+
+        it "passes the Result object to the on_complete block" do
+          controller.should_receive(:say).once.with "Let's go to Paris"
+          controller.run
+        end
+      end
+    end
+
     context "when the call is dead" do
       before { call.terminate }
 
