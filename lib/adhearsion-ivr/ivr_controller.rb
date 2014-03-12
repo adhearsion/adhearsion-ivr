@@ -102,7 +102,7 @@ module Adhearsion
         end
   
         after_transition any => :prompting do |state|
-          state.deliver_prompt
+          state.call_controller.deliver_prompt
         end
   
         after_transition :prompting => :complete do |state|
