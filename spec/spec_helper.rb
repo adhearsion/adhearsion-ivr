@@ -13,5 +13,7 @@ RSpec.configure do |config|
 
   config.before do
     Punchblock.stub new_request_id: 'foo'
+
+    Adhearsion::Logging.start Adhearsion::Logging.default_appenders, :trace, Adhearsion.config.platform.logging.formatter
   end
 end
