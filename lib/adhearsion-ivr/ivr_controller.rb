@@ -6,8 +6,6 @@ require 'adhearsion-asr'
 module Adhearsion
   class IVRController < Adhearsion::CallController
     class << self
-      attr_accessor :error_limit
-
       # list of prompts to be played to the caller.
       # this should have one prompt for each attempt
       # in case there are not enough prompts, the final prompt will be re-used until
@@ -39,11 +37,37 @@ module Adhearsion
       end
     end
 
-    attr_accessor :errors
+    state_machine initial: :prompting do
+      event(:match)    { transition prompting: :complete }
+      event(:reprompt) { transition input_error: :prompting }
+      event(:nomatch)  { transition prompting: :input_error }
+      event(:no_input) { transition prompting: :input_error }
+      event(:failure)  { transition prompting: :failure, input_error: :failure }
+
+      after_transition :prompting => :input_error do |controller|
+        controller.increment_errors
+        if controller.continue?
+          controller.reprompt!
+        else
+          controller.failure!
+        end
+      end
+
+      after_transition any => :prompting do |controller|
+        controller.deliver_prompt
+      end
+
+      after_transition :prompting => :complete do |controller|
+        controller.completion_callback
+      end
+
+      after_transition any => :failure do |controller|
+        controller.failure_callback
+      end
+    end
 
     def run
       @errors = 0
-      @state = InputState.new self
       deliver_prompt
     end
 
@@ -54,9 +78,9 @@ module Adhearsion
 
       @result = ask prompt, grammar: grammar, mode: :voice
       if @result.match?
-        @state.match!
+        match!
       else
-        @state.reject!
+        nomatch!
       end
     end
 
@@ -68,58 +92,16 @@ module Adhearsion
       @errors += 1
     end
 
+    def continue?
+      @errors < @@max_attempts
+    end
+
     def completion_callback
       instance_exec @result, &@@completion_callback
     end
 
     def failure_callback
       instance_exec @result, &@@failure_callback
-    end
-
-    def max_attempts
-      @@max_attempts
-    end
-
-    def continue?
-      @errors < max_attempts
-    end
-
-    class InputState
-      attr_accessor :call_controller
-
-      state_machine initial: :prompting do
-        event(:match)    { transition prompting: :complete }
-        event(:reprompt) { transition input_error: :prompting }
-        event(:reject)   { transition prompting: :input_error }
-        event(:no_input) { transition prompting: :input_error }
-        event(:failure)  { transition prompting: :failure, input_error: :failure }
-
-        after_transition :prompting => :input_error do |state|
-          state.call_controller.increment_errors
-          if state.call_controller.continue?
-            state.reprompt!
-          else
-            state.failure!
-          end
-        end
-
-        after_transition any => :prompting do |state|
-          state.call_controller.deliver_prompt
-        end
-
-        after_transition :prompting => :complete do |state|
-          state.call_controller.completion_callback
-        end
-
-        after_transition any => :failure do |state|
-          state.call_controller.failure_callback
-        end
-      end
-
-      def initialize(call_controller)
-        @call_controller = call_controller
-        super()
-      end
     end
   end
 end
