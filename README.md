@@ -22,7 +22,7 @@ A bare-bones example of creating a prompt. This menu has a single message, "Plea
 If the caller fails to provde input within 3 attempts, he hears a taunting message and is then transferred to a waiting kindergarten teacher.
 
 ```Ruby
-class SimplePrompt < InputController
+class SimplePrompt < Adhearsion::IVRController
   prompts << "Please enter a number 1 through 3"
   grammar = one_through_five_grammar
   
@@ -54,7 +54,7 @@ end
 An example with escalating prompts:
 
 ```Ruby
-class EscalatedPrompt < InputController
+class EscalatedPrompt < Adhearsion::IVRController
   prompts << "First attempt: enter a number"
   prompts << "Second attempt: enter a number 1 through 3"
   prompts << "Third attempt: enter a number 1 through 3. That would be the top row of your DTMF keypad. Don't get it wrong again."
@@ -90,7 +90,7 @@ end
 A slightly more involved example showing integration with I18n:
 
 ```Ruby
-class I18nEscalatedPrompts < InputController
+class I18nEscalatedPrompts < Adhearsion::IVRController
   # Note that by deferring prompt resolution we can take advantage of per-call variables such as language selection
   prompts << -> { t(:first_attempt) }
   prompts << -> { t(:second_attempt) }
