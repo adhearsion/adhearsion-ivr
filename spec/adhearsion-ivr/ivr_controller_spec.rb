@@ -407,5 +407,26 @@ describe Adhearsion::IVRController do
         expect { subject.run }.to raise_error Adhearsion::Call::Hangup
       end
     end
+
+    context "when overriding prompts" do
+      let(:override_prompts) { [SecureRandom.uuid, SecureRandom.uuid, SecureRandom.uuid] }
+
+      before do
+        override_prompts = self.override_prompts
+        controller_class.send :define_method, :prompts do
+          override_prompts
+        end
+      end
+
+      context "with a successful match" do
+        let(:result) { match_result }
+
+        it "plays the correct prompt" do
+          controller.should_receive(:ask).once.with(override_prompts[0], grammar: expected_grammar, mode: :voice).and_return result
+          controller.should_receive(:say).once.with "Let's go to Paris"
+          controller.run
+        end
+      end
+    end
   end
 end

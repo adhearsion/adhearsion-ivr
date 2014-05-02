@@ -71,7 +71,7 @@ module Adhearsion
     end
 
     def deliver_prompt
-      prompt = self.class.prompts[@errors] || self.class.prompts.last
+      prompt = prompts[@errors] || prompts.last
       prompt = instance_exec(&prompt) if prompt.respond_to? :call
       logger.debug "Prompt: #{prompt.inspect}"
 
@@ -97,6 +97,10 @@ module Adhearsion
 
     def grammar
       raise NotImplementedError, "You must override #grammar and provide a grammar"
+    end
+
+    def prompts
+      self.class.prompts
     end
 
     def increment_errors
