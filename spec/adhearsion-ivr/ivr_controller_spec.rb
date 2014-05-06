@@ -483,5 +483,22 @@ describe Adhearsion::IVRController do
         controller.run
       end
     end
+
+    context "when overriding the class method for prompt_timeout" do
+      let(:overridden_timeout) { 29 }
+
+      before do
+        overridden_timeout = self.overridden_timeout
+        controller_class.send :define_method, :timeout do
+          overridden_timeout
+        end
+      end
+
+      it "passes the correct timeout value to the #ask method" do
+        controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice, timeout: overridden_timeout).and_return match_result
+          controller.should_receive(:say).once.with "Let's go to Paris"
+        controller.run
+      end
+    end
   end
 end
