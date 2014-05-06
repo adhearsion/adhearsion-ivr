@@ -23,6 +23,15 @@ module Adhearsion
         end
       end
 
+      # timeout in seconds for each menu attempt
+      def timeout(num = nil)
+        if num
+          @timeout = num
+        else
+          @timeout || nil
+        end
+      end
+
       # called when the caller successfully provides input
       def on_complete(&block)
         @completion_callback = block
@@ -75,7 +84,11 @@ module Adhearsion
       prompt = instance_exec(&prompt) if prompt.respond_to? :call
       logger.debug "Prompt: #{prompt.inspect}"
 
-      @result = ask prompt, grammar: grammar, mode: :voice
+      ask_options = { grammar: grammar, mode: :voice }
+
+      ask_options[:timeout] = timeout if timeout
+
+      @result = ask prompt, ask_options
       logger.debug "Got result #{@result.inspect}"
       case @result.status
       when :match
@@ -105,6 +118,10 @@ module Adhearsion
 
     def max_attempts
       self.class.max_attempts
+    end
+
+    def timeout
+      self.class.timeout
     end
 
     def increment_errors
