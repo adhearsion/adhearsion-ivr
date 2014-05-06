@@ -71,35 +71,35 @@ describe Adhearsion::IVRController do
       end
     end
 
-    context "when an utterance is received" do
+    context 'when an utterance is received' do
       before do
         controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice).and_return result
       end
 
-      context "that is a match" do
+      context 'that is a match' do
         let(:result) { match_result }
 
-        it "passes the Result object to the on_complete block" do
+        it 'passes the Result object to the on_complete block' do
           controller.should_receive(:say).once.with "Let's go to Paris"
           controller.run
         end
       end
 
-      context "that is a noinput" do
+      context 'that is a noinput' do
         let(:result) { noinput_result }
 
-        context "followed by a match" do
+        context 'followed by a match' do
           before do
             controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return match_result
           end
 
-          it "re-prompts using the next prompt, and then passes the second Result to the on_complete block" do
+          it 're-prompts using the next prompt, and then passes the second Result to the on_complete block' do
             controller.should_receive(:say).once.with "Let's go to Paris"
             controller.run
           end
         end
 
-        context "when there are not enough prompts available for all retries" do
+        context 'when there are not enough prompts available for all retries' do
           let(:expected_prompts) { [SecureRandom.uuid, SecureRandom.uuid] }
 
           before do
@@ -107,26 +107,26 @@ describe Adhearsion::IVRController do
             controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return match_result
           end
 
-          it "reuses the last prompt" do
+          it 'reuses the last prompt' do
             controller.should_receive(:say).once.with "Let's go to Paris"
             controller.run
           end
         end
 
-        context "until it hits the maximum number of attempts" do
-          context "using the default of 3 attempts" do
+        context 'until it hits the maximum number of attempts' do
+          context 'using the default of 3 attempts' do
             before do
               controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
               controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice).and_return result
             end
 
-            it "invokes the on_failure block" do
+            it 'invokes the on_failure block' do
               controller.should_receive(:say).once.with apology_announcement
               controller.run
             end
           end
 
-          context "when that value is different from the default" do
+          context 'when that value is different from the default' do
             let(:controller_class) do
               expected_prompts = self.expected_prompts
               apology_announcement = self.apology_announcement
@@ -156,7 +156,7 @@ describe Adhearsion::IVRController do
               controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
             end
 
-            it "invokes the on_failure block" do
+            it 'invokes the on_failure block' do
               controller.should_receive(:say).once.with apology_announcement
               controller.run
             end
@@ -164,25 +164,25 @@ describe Adhearsion::IVRController do
         end
       end
 
-      context "that is a nomatch" do
+      context 'that is a nomatch' do
         let(:result) do
           AdhearsionASR::Result.new.tap do |res|
             res.status = :nomatch
           end
         end
 
-        context "followed by a match" do
+        context 'followed by a match' do
           before do
             controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return match_result
           end
 
-          it "re-prompts using the next prompt, and then passes the second Result to the on_complete block" do
+          it 're-prompts using the next prompt, and then passes the second Result to the on_complete block' do
             controller.should_receive(:say).once.with "Let's go to Paris"
             controller.run
           end
         end
 
-        context "when there are not enough prompts available for all retries" do
+        context 'when there are not enough prompts available for all retries' do
           let(:expected_prompts) { [SecureRandom.uuid, SecureRandom.uuid] }
 
           before do
@@ -190,26 +190,26 @@ describe Adhearsion::IVRController do
             controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return match_result
           end
 
-          it "reuses the last prompt" do
+          it 'reuses the last prompt' do
             controller.should_receive(:say).once.with "Let's go to Paris"
             controller.run
           end
         end
 
-        context "until it hits the maximum number of attempts" do
-          context "using the default of 3 attempts" do
+        context 'until it hits the maximum number of attempts' do
+          context 'using the default of 3 attempts' do
             before do
               controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
               controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice).and_return result
             end
 
-            it "invokes the on_failure block" do
+            it 'invokes the on_failure block' do
               controller.should_receive(:say).once.with apology_announcement
               controller.run
             end
           end
 
-          context "when that value is different from the default" do
+          context 'when that value is different from the default' do
             let(:controller_class) do
               expected_prompts = self.expected_prompts
               apology_announcement = self.apology_announcement
@@ -239,7 +239,7 @@ describe Adhearsion::IVRController do
               controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
             end
 
-            it "invokes the on_failure block" do
+            it 'invokes the on_failure block' do
               controller.should_receive(:say).once.with apology_announcement
               controller.run
             end
@@ -247,7 +247,7 @@ describe Adhearsion::IVRController do
         end
       end
 
-      context "that is a hangup" do
+      context 'that is a hangup' do
         let(:controller_class) do
           expected_prompts = self.expected_prompts
 
@@ -257,11 +257,11 @@ describe Adhearsion::IVRController do
             end
 
             on_complete do |result|
-              raise "Got complete"
+              raise 'Got complete'
             end
 
             on_failure do
-              raise "Got failure"
+              raise 'Got failure'
             end
 
             def grammar
@@ -276,12 +276,12 @@ describe Adhearsion::IVRController do
           end
         end
 
-        it "raises Adhearsion::Call::Hangup" do
+        it 'raises Adhearsion::Call::Hangup' do
           expect { controller.run }.to raise_error(Adhearsion::Call::Hangup)
         end
       end
 
-      context "that is a stop" do
+      context 'that is a stop' do
         let(:controller_class) do
           expected_prompts = self.expected_prompts
 
@@ -291,11 +291,11 @@ describe Adhearsion::IVRController do
             end
 
             on_complete do |result|
-              raise "Got complete"
+              raise 'Got complete'
             end
 
             on_failure do
-              raise "Got failure"
+              raise 'Got failure'
             end
 
             def grammar
@@ -310,13 +310,13 @@ describe Adhearsion::IVRController do
           end
         end
 
-        it "falls through silently" do
+        it 'falls through silently' do
           controller.run
         end
       end
     end
 
-    context "when the prompts are callable" do
+    context 'when the prompts are callable' do
       let(:controller_class) do
         Class.new(Adhearsion::IVRController) do
           prompts << -> { thing }
@@ -338,7 +338,7 @@ describe Adhearsion::IVRController do
         end
       end
 
-      it "should evaluate the prompt repeatedly in the context of the controller instance" do
+      it 'should evaluate the prompt repeatedly in the context of the controller instance' do
         controller.should_receive(:ask).once.with('one', grammar: expected_grammar, mode: :voice).and_return noinput_result
         controller.should_receive(:ask).once.with('two', grammar: expected_grammar, mode: :voice).and_return noinput_result
         controller.should_receive(:ask).once.with('three', grammar: expected_grammar, mode: :voice).and_return noinput_result
@@ -346,10 +346,10 @@ describe Adhearsion::IVRController do
       end
     end
 
-    context "when no grammar is provided" do
+    context 'when no grammar is provided' do
       let(:controller_class) do
         Class.new(Adhearsion::IVRController) do
-          prompts << "Hello"
+          prompts << 'Hello'
 
           on_complete do |result|
           end
@@ -359,15 +359,15 @@ describe Adhearsion::IVRController do
         end
       end
 
-      it "should raise NotImplementedError" do
+      it 'should raise NotImplementedError' do
         expect { controller.run }.to raise_error(NotImplementedError)
       end
     end
 
-    context "when no complete callback is provided" do
+    context 'when no complete callback is provided' do
       let(:controller_class) do
         Class.new(Adhearsion::IVRController) do
-          prompts << "Hello"
+          prompts << 'Hello'
 
           def grammar
             :some_grammar
@@ -375,16 +375,16 @@ describe Adhearsion::IVRController do
         end
       end
 
-      it "should simply return the result" do
+      it 'should simply return the result' do
         controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice).and_return match_result
         controller.run.should be(match_result)
       end
     end
 
-    context "when no complete callback is provided" do
+    context 'when no complete callback is provided' do
       let(:controller_class) do
         Class.new(Adhearsion::IVRController) do
-          prompts << "Hello"
+          prompts << 'Hello'
 
           def grammar
             :some_grammar
@@ -392,7 +392,7 @@ describe Adhearsion::IVRController do
         end
       end
 
-      it "should simply return the last result" do
+      it 'should simply return the last result' do
         controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice).and_return noinput_result
         controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice).and_return noinput_result
         controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice).and_return noinput_result
@@ -400,15 +400,15 @@ describe Adhearsion::IVRController do
       end
     end
 
-    context "when the call is dead" do
+    context 'when the call is dead' do
       before { call.terminate }
 
-      it "executing the controller should raise Adhearsion::Call::Hangup" do
+      it 'executing the controller should raise Adhearsion::Call::Hangup' do
         expect { subject.run }.to raise_error Adhearsion::Call::Hangup
       end
     end
 
-    context "when overriding prompts" do
+    context 'when overriding prompts' do
       let(:override_prompts) { [SecureRandom.uuid, SecureRandom.uuid, SecureRandom.uuid] }
 
       before do
@@ -418,10 +418,10 @@ describe Adhearsion::IVRController do
         end
       end
 
-      context "with a successful match" do
+      context 'with a successful match' do
         let(:result) { match_result }
 
-        it "plays the correct prompt" do
+        it 'plays the correct prompt' do
           controller.should_receive(:ask).once.with(override_prompts[0], grammar: expected_grammar, mode: :voice).and_return result
           controller.should_receive(:say).once.with "Let's go to Paris"
           controller.run
@@ -429,7 +429,7 @@ describe Adhearsion::IVRController do
       end
     end
 
-    context "when overriding max_attempts" do
+    context 'when overriding max_attempts' do
       let(:max_attempts_number) { 2 }
 
       before do
@@ -439,8 +439,8 @@ describe Adhearsion::IVRController do
         end
       end
 
-      context "with a different number of attempts than the default and failed input" do
-        it "plays the apology announcement after receiving the correct number of failed inputs" do
+      context 'with a different number of attempts than the default and failed input' do
+        it 'plays the apology announcement after receiving the correct number of failed inputs' do
           controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice).and_return noinput_result
           controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return noinput_result
           controller.should_receive(:say).once.with apology_announcement
@@ -449,7 +449,7 @@ describe Adhearsion::IVRController do
       end
     end
 
-    context "when specifying a timeout for the menu" do
+    context 'when specifying a timeout for the menu' do
       let(:expected_timeout) { 27 }
       let(:controller_class) do
         expected_prompts = self.expected_prompts
@@ -477,14 +477,14 @@ describe Adhearsion::IVRController do
         end
       end
 
-      it "passes the correct timeout value to the #ask method" do
+      it 'passes the correct timeout value to the #ask method' do
         controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice, timeout: expected_timeout).and_return match_result
           controller.should_receive(:say).once.with "Let's go to Paris"
         controller.run
       end
     end
 
-    context "when overriding the class method for prompt_timeout" do
+    context 'when overriding the class method for prompt_timeout' do
       let(:overridden_timeout) { 29 }
 
       before do
@@ -494,7 +494,7 @@ describe Adhearsion::IVRController do
         end
       end
 
-      it "passes the correct timeout value to the #ask method" do
+      it 'passes the correct timeout value to the #ask method' do
         controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice, timeout: overridden_timeout).and_return match_result
           controller.should_receive(:say).once.with "Let's go to Paris"
         controller.run
