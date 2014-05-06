@@ -257,11 +257,11 @@ describe Adhearsion::IVRController do
             end
 
             on_complete do |result|
-              raise 'Got complete'
+              fail 'Got complete'
             end
 
             on_failure do
-              raise 'Got failure'
+              fail 'Got failure'
             end
 
             def grammar
@@ -291,11 +291,11 @@ describe Adhearsion::IVRController do
             end
 
             on_complete do |result|
-              raise 'Got complete'
+              fail 'Got complete'
             end
 
             on_failure do
-              raise 'Got failure'
+              fail 'Got failure'
             end
 
             def grammar
@@ -479,7 +479,7 @@ describe Adhearsion::IVRController do
 
       it 'passes the correct timeout value to the #ask method' do
         controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice, timeout: expected_timeout).and_return match_result
-          controller.should_receive(:say).once.with "Let's go to Paris"
+        controller.should_receive(:say).once.with "Let's go to Paris"
         controller.run
       end
     end
@@ -496,7 +496,7 @@ describe Adhearsion::IVRController do
 
       it 'passes the correct timeout value to the #ask method' do
         controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice, timeout: overridden_timeout).and_return match_result
-          controller.should_receive(:say).once.with "Let's go to Paris"
+        controller.should_receive(:say).once.with "Let's go to Paris"
         controller.run
       end
     end

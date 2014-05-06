@@ -97,19 +97,19 @@ module Adhearsion
         logger.info "Prompt was stopped forcibly. Exiting cleanly..."
       when :hangup
         logger.info "Call was hung up mid-prompt. Exiting controller flow..."
-        raise Adhearsion::Call::Hangup
+        fail Adhearsion::Call::Hangup
       when :nomatch
         nomatch!
       when :noinput
         noinput!
       else
-        raise "Unrecognized result status: #{@result.status}"
+        fail "Unrecognized result status: #{@result.status}"
       end
       @result
     end
 
     def grammar
-      raise NotImplementedError, "You must override #grammar and provide a grammar"
+      fail NotImplementedError, 'You must override #grammar and provide a grammar'
     end
 
     def prompts
