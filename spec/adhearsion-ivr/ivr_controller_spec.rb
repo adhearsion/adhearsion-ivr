@@ -428,5 +428,25 @@ describe Adhearsion::IVRController do
         end
       end
     end
+
+    context "when overriding max_attempts" do
+      let(:max_attempts_number) { 2 }
+
+      before do
+        max_attempts_number = self.max_attempts_number
+        controller_class.send :define_method, :max_attempts do
+          max_attempts_number
+        end
+      end
+
+      context "with a different number of attempts than the default and failed input" do
+        it "plays the apology announcement after receiving the correct number of failed inputs" do
+          controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice).and_return noinput_result
+          controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return noinput_result
+          controller.should_receive(:say).once.with apology_announcement
+          controller.run
+        end
+      end
+    end
   end
 end

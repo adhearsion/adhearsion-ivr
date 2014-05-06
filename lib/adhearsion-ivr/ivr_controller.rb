@@ -103,12 +103,16 @@ module Adhearsion
       self.class.prompts
     end
 
+    def max_attempts
+      self.class.max_attempts
+    end
+
     def increment_errors
       @errors += 1
     end
 
     def continue?
-      @errors < self.class.max_attempts
+      @errors < max_attempts
     end
 
     def completion_callback
