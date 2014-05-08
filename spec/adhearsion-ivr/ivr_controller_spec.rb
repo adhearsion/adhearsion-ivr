@@ -346,6 +346,28 @@ describe Adhearsion::IVRController do
       end
     end
 
+    context 'when a grammar is referenced by url' do
+      let(:test_grammar_url) { 'http://localhost/grammar.grxml' }
+      let(:controller_class) do
+        Class.new(Adhearsion::IVRController) do
+          prompts << 'Hello'
+          max_attempts 1
+
+          on_failure do
+          end
+
+          def grammar_url
+            'http://localhost/grammar.grxml'
+          end
+        end
+      end
+
+      it 'should call #ask with the correct option' do
+        controller.should_receive(:ask).once.with('Hello', grammar_url: test_grammar_url, mode: :voice).and_return noinput_result
+        controller.run
+      end
+    end
+
     context 'when no grammar is provided' do
       let(:controller_class) do
         Class.new(Adhearsion::IVRController) do

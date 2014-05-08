@@ -84,7 +84,13 @@ module Adhearsion
       prompt = instance_exec(&prompt) if prompt.respond_to? :call
       logger.debug "Prompt: #{prompt.inspect}"
 
-      ask_options = { grammar: grammar, mode: :voice }
+      if grammar
+        ask_options = { grammar: grammar, mode: :voice }
+      elsif grammar_url
+        ask_options = { grammar_url: grammar_url, mode: :voice }
+      else
+        fail NotImplementedError, 'You must override #grammar or #grammar_url and provide an input grammar'
+      end
 
       ask_options[:timeout] = timeout if timeout
 
@@ -109,7 +115,11 @@ module Adhearsion
     end
 
     def grammar
-      fail NotImplementedError, 'You must override #grammar and provide a grammar'
+      nil
+    end
+
+    def grammar_url
+      nil
     end
 
     def prompts
