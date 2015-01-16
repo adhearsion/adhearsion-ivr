@@ -86,6 +86,40 @@ class EscalatedPrompt < Adhearsion::IVRController
 end
 ```
 
+An example with input validation:
+
+```Ruby
+class InputValidation < Adhearsion::IVRController
+  prompts << "Please enter your favorite fruit"
+
+  on_complete do |result|
+    case result.interpretation
+    when "apple"
+      pass AppleController
+    when "orange"
+      pass OrangeController
+    else
+      pass OtherController
+    end
+  end
+
+  on_failure do
+    say "Sorry you failed kindergarten. Let us transfer you to our trained staff of kindergarten teachers."
+    dial 'sip:kindergarten_teachers@elementaryschool.com'
+  end
+
+  validate do
+    ["apple", "orange", "banana", "tomato"].include? @result.interpretation
+  end
+
+  def grammar
+    RubySpeech::GRXML.draw do
+      # ... put a valid GRXML grammar here
+    end
+  end
+end
+```
+
 A slightly more involved example showing integration with I18n:
 
 ```Ruby

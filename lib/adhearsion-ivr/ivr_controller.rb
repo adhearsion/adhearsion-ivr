@@ -32,7 +32,7 @@ module Adhearsion
         end
       end
 
-      # called to verify matched input is valid
+      # called to verify matched input is valid - should be truthy for valid input, falsey otherwise.
       def validate_input(&block)
         @validate_callback = block
       end
