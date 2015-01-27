@@ -25,6 +25,10 @@ describe Adhearsion::IVRController do
           say apology_announcement
         end
 
+        validate_input do
+          @result.utterance == 'Paris'
+        end
+
         def grammar
           :some_grammar
         end
@@ -247,6 +251,45 @@ describe Adhearsion::IVRController do
         end
       end
 
+      context 'that fails validation' do
+        let(:invalid_result) do
+          AdhearsionASR::Result.new.tap do |res|
+            res.status         = :match
+            res.mode           = :voice
+            res.confidence     = 1
+            res.utterance      = 'London'
+            res.interpretation = 'London'
+            res.nlsml          = nlsml
+          end
+        end
+        let(:result) { invalid_result }
+
+        context 'followed by a succesful validation' do
+          before do
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return match_result
+          end
+
+          it 're-prompt, and then passes the valid result to the on_complete block' do
+            controller.should_receive(:say).once.with "Let's go to Paris"
+            controller.run
+          end
+        end
+
+        context 'until it hits the maximum number of attempts' do
+          context 'using the default of 3 attempts' do
+            before do
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice).and_return result
+            end
+
+            it 'invokes the on_failure block' do
+              controller.should_receive(:say).once.with apology_announcement
+              controller.run
+            end
+          end
+        end
+      end
+
       context 'that is a hangup' do
         let(:controller_class) do
           expected_prompts = self.expected_prompts
@@ -400,18 +443,6 @@ describe Adhearsion::IVRController do
       it 'should simply return the result' do
         controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice).and_return match_result
         controller.run.should be(match_result)
-      end
-    end
-
-    context 'when no complete callback is provided' do
-      let(:controller_class) do
-        Class.new(Adhearsion::IVRController) do
-          prompts << 'Hello'
-
-          def grammar
-            :some_grammar
-          end
-        end
       end
 
       it 'should simply return the last result' do

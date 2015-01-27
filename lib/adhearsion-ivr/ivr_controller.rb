@@ -32,6 +32,12 @@ module Adhearsion
         end
       end
 
+      # called to verify matched input is valid - should be truthy for valid input, falsey otherwise.
+      def validate_input(&block)
+        @validate_callback = block
+      end
+      attr_reader :validate_callback
+
       # called when the caller successfully provides input
       def on_complete(&block)
         @completion_callback = block
@@ -46,13 +52,15 @@ module Adhearsion
     end
 
     state_machine initial: :prompting do
-      event(:match)    { transition prompting: :complete }
+      event(:match)    { transition prompting: :validation }
+      event(:valid)    { transition validation: :complete }
+      event(:invalid)  { transition validation: :input_error }
       event(:reprompt) { transition input_error: :prompting }
       event(:nomatch)  { transition prompting: :input_error }
       event(:noinput)  { transition prompting: :input_error }
       event(:failure)  { transition prompting: :failure, input_error: :failure }
 
-      after_transition :prompting => :input_error do |controller|
+      after_transition any => :input_error do |controller|
         controller.increment_errors
         if controller.continue?
           controller.reprompt!
@@ -61,11 +69,19 @@ module Adhearsion
         end
       end
 
+      after_transition any => :validation do |controller|
+        if controller.validate_callback
+          controller.valid!
+        else
+          controller.invalid!
+        end
+      end
+
       after_transition any => :prompting do |controller|
         controller.deliver_prompt
       end
 
-      after_transition :prompting => :complete do |controller|
+      after_transition any => :complete do |controller|
         controller.completion_callback
       end
 
@@ -140,6 +156,14 @@ module Adhearsion
 
     def continue?
       @errors < max_attempts
+    end
+
+    def validate_callback
+      if self.class.validate_callback
+        instance_exec &self.class.validate_callback
+      else
+        true
+      end
     end
 
     def completion_callback
