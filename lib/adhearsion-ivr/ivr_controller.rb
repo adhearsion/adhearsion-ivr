@@ -118,7 +118,7 @@ module Adhearsion
       end
 
       ask_options[:timeout] = timeout if timeout
-      ask_options[:renderer] = renderer if renderer
+      ask_options[:output_options] = { renderer: renderer } if renderer
 
       @result = ask prompt, ask_options
       logger.debug "Got result #{@result.inspect}"

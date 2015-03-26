@@ -566,7 +566,7 @@ describe Adhearsion::IVRController do
       end
 
       it 'passes the correct renderer value to the #ask method' do
-        controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice, renderer: expected_renderer).and_return match_result
+        controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice, output_options: { renderer: expected_renderer }).and_return match_result
         controller.should_receive(:say).once.with "Let's go to Paris"
         controller.run
       end
