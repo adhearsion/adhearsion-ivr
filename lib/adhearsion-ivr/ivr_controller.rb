@@ -32,6 +32,15 @@ module Adhearsion
         end
       end
 
+      # renderer to use for the prompts
+      def renderer(engine = nil)
+        if engine
+          @renderer = engine
+        else
+          @renderer || nil
+        end
+      end
+
       # called to verify matched input is valid - should be truthy for valid input, falsey otherwise.
       def validate_input(&block)
         @validate_callback = block
@@ -109,6 +118,7 @@ module Adhearsion
       end
 
       ask_options[:timeout] = timeout if timeout
+      ask_options[:renderer] = renderer if renderer
 
       @result = ask prompt, ask_options
       logger.debug "Got result #{@result.inspect}"
@@ -148,6 +158,10 @@ module Adhearsion
 
     def timeout
       self.class.timeout
+    end
+
+    def renderer
+      self.class.renderer
     end
 
     def increment_errors

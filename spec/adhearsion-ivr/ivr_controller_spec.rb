@@ -537,6 +537,41 @@ describe Adhearsion::IVRController do
       end
     end
 
+    context 'when specifying a renderer for the menu' do
+      let(:expected_renderer) { :some_renderer }
+      let(:controller_class) do
+        expected_prompts = self.expected_prompts
+        apology_announcement = self.apology_announcement
+        expected_renderer = self.expected_renderer
+
+        Class.new(Adhearsion::IVRController) do
+          expected_prompts.each do |prompt|
+            prompts << prompt
+          end
+
+          renderer expected_renderer
+
+          on_complete do |result|
+            say "Let's go to #{result.utterance}"
+          end
+
+          on_failure do
+            say apology_announcement
+          end
+
+          def grammar
+            :some_grammar
+          end
+        end
+      end
+
+      it 'passes the correct renderer value to the #ask method' do
+        controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice, renderer: expected_renderer).and_return match_result
+        controller.should_receive(:say).once.with "Let's go to Paris"
+        controller.run
+      end
+    end
+
     context 'when overriding the class method for prompt_timeout' do
       let(:overridden_timeout) { 29 }
 

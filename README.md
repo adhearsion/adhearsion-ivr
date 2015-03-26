@@ -162,9 +162,11 @@ end
 
 ## Method overriding in subclasses
 
-If you need to set the configuration for the menu at runtime, `#prompts`, `#timeout` and `#max_attempts` can be defined on the subclass to provide the needed values, as you can see in the following example.
+If you need to set the configuration for the menu at runtime, `#prompts`, `#timeout`, `#max_attempts` and `renderer` can be defined on the subclass to provide the needed values, as you can see in the following example.
 
 The examples assumes the values have been placed in call variables by an earlier controller, which is also a practical use case for overriding methods.
+
+`renderer` values are the same accepted by the various Adhearsion output methods.
 
 ```Ruby
 class OverriddenPrompt < Adhearsion::IVRController
@@ -193,6 +195,10 @@ class OverriddenPrompt < Adhearsion::IVRController
 
   def timeout
     call[:menu_timeout]
+  end
+
+  def renderer
+    :unimrcp
   end
 
   def max_attempts
