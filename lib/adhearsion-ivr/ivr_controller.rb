@@ -23,6 +23,30 @@ module Adhearsion
         end
       end
 
+      # timeout in seconds for each menu attempt
+      def timeout(num = nil)
+        if num
+          @timeout = num
+        else
+          @timeout || nil
+        end
+      end
+
+      # renderer to use for the prompts
+      def renderer(engine = nil)
+        if engine
+          @renderer = engine
+        else
+          @renderer || nil
+        end
+      end
+
+      # called to verify matched input is valid - should be truthy for valid input, falsey otherwise.
+      def validate_input(&block)
+        @validate_callback = block
+      end
+      attr_reader :validate_callback
+
       # called when the caller successfully provides input
       def on_complete(&block)
         @completion_callback = block
@@ -37,13 +61,15 @@ module Adhearsion
     end
 
     state_machine initial: :prompting do
-      event(:match)    { transition prompting: :complete }
+      event(:match)    { transition prompting: :validation }
+      event(:valid)    { transition validation: :complete }
+      event(:invalid)  { transition validation: :input_error }
       event(:reprompt) { transition input_error: :prompting }
       event(:nomatch)  { transition prompting: :input_error }
       event(:noinput)  { transition prompting: :input_error }
       event(:failure)  { transition prompting: :failure, input_error: :failure }
 
-      after_transition :prompting => :input_error do |controller|
+      after_transition any => :input_error do |controller|
         controller.increment_errors
         if controller.continue?
           controller.reprompt!
@@ -52,11 +78,19 @@ module Adhearsion
         end
       end
 
+      after_transition any => :validation do |controller|
+        if controller.validate_callback
+          controller.valid!
+        else
+          controller.invalid!
+        end
+      end
+
       after_transition any => :prompting do |controller|
         controller.deliver_prompt
       end
 
-      after_transition :prompting => :complete do |controller|
+      after_transition any => :complete do |controller|
         controller.completion_callback
       end
 
@@ -71,11 +105,22 @@ module Adhearsion
     end
 
     def deliver_prompt
-      prompt = self.class.prompts[@errors] || self.class.prompts.last
+      prompt = prompts[@errors] || prompts.last
       prompt = instance_exec(&prompt) if prompt.respond_to? :call
       logger.debug "Prompt: #{prompt.inspect}"
 
-      @result = ask prompt, grammar: grammar, mode: :voice
+      if grammar
+        ask_options = { grammar: grammar, mode: :voice }
+      elsif grammar_url
+        ask_options = { grammar_url: grammar_url, mode: :voice }
+      else
+        fail NotImplementedError, 'You must override #grammar or #grammar_url and provide an input grammar'
+      end
+
+      ask_options[:timeout] = timeout if timeout
+      ask_options[:output_options] = { renderer: renderer } if renderer
+
+      @result = ask prompt, ask_options
       logger.debug "Got result #{@result.inspect}"
       case @result.status
       when :match
@@ -84,19 +129,39 @@ module Adhearsion
         logger.info "Prompt was stopped forcibly. Exiting cleanly..."
       when :hangup
         logger.info "Call was hung up mid-prompt. Exiting controller flow..."
-        raise Adhearsion::Call::Hangup
+        fail Adhearsion::Call::Hangup
       when :nomatch
         nomatch!
       when :noinput
         noinput!
       else
-        raise "Unrecognized result status: #{@result.status}"
+        fail "Unrecognized result status: #{@result.status}"
       end
       @result
     end
 
     def grammar
-      raise NotImplementedError, "You must override #grammar and provide a grammar"
+      nil
+    end
+
+    def grammar_url
+      nil
+    end
+
+    def prompts
+      self.class.prompts
+    end
+
+    def max_attempts
+      self.class.max_attempts
+    end
+
+    def timeout
+      self.class.timeout
+    end
+
+    def renderer
+      self.class.renderer
     end
 
     def increment_errors
@@ -104,7 +169,15 @@ module Adhearsion
     end
 
     def continue?
-      @errors < self.class.max_attempts
+      @errors < max_attempts
+    end
+
+    def validate_callback
+      if self.class.validate_callback
+        instance_exec &self.class.validate_callback
+      else
+        true
+      end
     end
 
     def completion_callback
