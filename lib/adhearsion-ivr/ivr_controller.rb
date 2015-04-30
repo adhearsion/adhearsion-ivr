@@ -41,6 +41,15 @@ module Adhearsion
         end
       end
 
+      # input options to use for the prompts
+      def input_options(input_options = nil)
+        if input_options
+          @input_options = input_options
+        else
+          @input_options || nil
+        end
+      end
+
       # called to verify matched input is valid - should be truthy for valid input, falsey otherwise.
       def validate_input(&block)
         @validate_callback = block
@@ -119,6 +128,7 @@ module Adhearsion
 
       ask_options[:timeout] = timeout if timeout
       ask_options[:output_options] = { renderer: renderer } if renderer
+      ask_options[:input_options] = input_options if input_options
 
       @result = ask prompt, ask_options
       logger.debug "Got result #{@result.inspect}"
@@ -162,6 +172,10 @@ module Adhearsion
 
     def renderer
       self.class.renderer
+    end
+
+    def input_options
+      self.class.input_options
     end
 
     def increment_errors
