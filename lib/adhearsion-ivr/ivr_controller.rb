@@ -135,7 +135,9 @@ module Adhearsion
         fail NotImplementedError, 'You must override #grammar or #grammar_url and provide an input grammar'
       end
 
+      ask_options[:interruptible] = true
       ask_options[:timeout] = timeout if timeout
+
       if output_options && renderer
         ask_options[:output_options] = output_options.merge({ renderer: renderer })
       elsif output_options
