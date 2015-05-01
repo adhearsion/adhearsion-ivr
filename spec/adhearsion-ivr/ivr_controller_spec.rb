@@ -677,5 +677,68 @@ describe Adhearsion::IVRController do
         controller.run
       end
     end
+
+    context 'when overriding barge per-prompt' do
+      context 'with default barge behaviour' do # Only first prompt bargeable
+        let(:controller_class) do
+          Class.new(Adhearsion::IVRController) do
+            prompts << -> { 'first' }  # Bargeable
+            prompts << -> { 'second' }  # Unbargeable
+            prompts << -> { self.barge true; 'third' }  # Bargeable
+            prompts << -> { 'fourth' }  # Unbargeable
+
+            max_attempts 4
+
+            on_complete do |result|
+              say "Let's go to #{result.utterance}"
+            end
+
+            def grammar
+              :some_grammar
+            end
+          end
+        end
+
+        it 'allows interruption of each prompt correctly' do
+          controller.should_receive(:ask).once.with('first', grammar: :some_grammar, mode: :voice, interruptible: true).and_return noinput_result
+          controller.should_receive(:ask).once.with('second', grammar: :some_grammar, mode: :voice, interruptible: false).and_return noinput_result
+          controller.should_receive(:ask).once.with('third', grammar: :some_grammar, mode: :voice, interruptible: true).and_return noinput_result
+          controller.should_receive(:ask).once.with('fourth', grammar: :some_grammar, mode: :voice, interruptible: false).and_return match_result
+          controller.should_receive(:say).once.with "Let's go to Paris"
+          controller.run
+        end
+      end
+
+      context 'with barge enabled' do
+        let(:controller_class) do
+          Class.new(Adhearsion::IVRController) do
+            prompts << -> { 'first' }  # Bargeable
+            prompts << -> { 'second' }  # Bargeable
+            prompts << -> { self.barge false; 'third' }  # Unbargeable
+            prompts << -> { 'fourth' }  # Bargeable
+
+            max_attempts 4
+            barge true
+
+            on_complete do |result|
+              say "Let's go to #{result.utterance}"
+            end
+
+            def grammar
+              :some_grammar
+            end
+          end
+        end
+
+        it 'allows interruption of each prompt correctly' do
+          controller.should_receive(:ask).once.with('first', grammar: :some_grammar, mode: :voice, interruptible: true).and_return noinput_result
+          controller.should_receive(:ask).once.with('second', grammar: :some_grammar, mode: :voice, interruptible: true).and_return noinput_result
+          controller.should_receive(:ask).once.with('third', grammar: :some_grammar, mode: :voice, interruptible: false).and_return noinput_result
+          controller.should_receive(:ask).once.with('fourth', grammar: :some_grammar, mode: :voice, interruptible: true).and_return match_result
+          controller.should_receive(:say).once.with "Let's go to Paris"
+          controller.run
+        end
+      end
+    end
   end
 end
