@@ -11,11 +11,14 @@ describe Adhearsion::IVRController do
     let(:controller_class) do
       expected_prompts = self.expected_prompts
       apology_announcement = self.apology_announcement
+      barge_in = self.barge_in
 
       Class.new(Adhearsion::IVRController) do
         expected_prompts.each do |prompt|
           prompts << prompt
         end
+
+        barge barge_in
 
         on_complete do |result|
           say "Let's go to #{result.utterance}"
@@ -46,6 +49,7 @@ describe Adhearsion::IVRController do
 
     let(:expected_prompts) { [SecureRandom.uuid, SecureRandom.uuid, SecureRandom.uuid] }
     let(:apology_announcement) { "Sorry, I couldn't understand where you would like to go. I'll put you through to a human." }
+    let(:barge_in) { nil }
 
     let(:expected_grammar) { :some_grammar }
 
@@ -93,13 +97,28 @@ describe Adhearsion::IVRController do
         let(:result) { noinput_result }
 
         context 'followed by a match' do
-          before do
-            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return match_result
+          context 'with default barge behaviour' do
+            before do
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return match_result
+            end
+
+            it 're-prompts using the next prompt, and then passes the second Result to the on_complete block' do
+              controller.should_receive(:say).once.with "Let's go to Paris"
+              controller.run
+            end
           end
 
-          it 're-prompts using the next prompt, and then passes the second Result to the on_complete block' do
-            controller.should_receive(:say).once.with "Let's go to Paris"
-            controller.run
+          context 'with barge-in enabled' do
+            let(:barge_in) { true }
+
+            before do
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return match_result
+            end
+
+            it 're-prompts using the next prompt, and then passes the second Result to the on_complete block' do
+              controller.should_receive(:say).once.with "Let's go to Paris"
+              controller.run
+            end
           end
         end
 
@@ -107,8 +126,8 @@ describe Adhearsion::IVRController do
           let(:expected_prompts) { [SecureRandom.uuid, SecureRandom.uuid] }
 
           before do
-            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return result
-            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return match_result
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return result
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return match_result
           end
 
           it 'reuses the last prompt' do
@@ -120,8 +139,8 @@ describe Adhearsion::IVRController do
         context 'until it hits the maximum number of attempts' do
           context 'using the default of 3 attempts' do
             before do
-              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return result
-              controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice, interruptible: true).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice, interruptible: false).and_return result
             end
 
             it 'invokes the on_failure block' do
@@ -157,7 +176,7 @@ describe Adhearsion::IVRController do
             end
 
             before do
-              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return result
             end
 
             it 'invokes the on_failure block' do
@@ -177,7 +196,7 @@ describe Adhearsion::IVRController do
 
         context 'followed by a match' do
           before do
-            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return match_result
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return match_result
           end
 
           it 're-prompts using the next prompt, and then passes the second Result to the on_complete block' do
@@ -190,8 +209,8 @@ describe Adhearsion::IVRController do
           let(:expected_prompts) { [SecureRandom.uuid, SecureRandom.uuid] }
 
           before do
-            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return result
-            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return match_result
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return result
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return match_result
           end
 
           it 'reuses the last prompt' do
@@ -203,8 +222,8 @@ describe Adhearsion::IVRController do
         context 'until it hits the maximum number of attempts' do
           context 'using the default of 3 attempts' do
             before do
-              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return result
-              controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice, interruptible: true).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice, interruptible: false).and_return result
             end
 
             it 'invokes the on_failure block' do
@@ -240,7 +259,7 @@ describe Adhearsion::IVRController do
             end
 
             before do
-              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return result
             end
 
             it 'invokes the on_failure block' do
@@ -266,7 +285,7 @@ describe Adhearsion::IVRController do
 
         context 'followed by a succesful validation' do
           before do
-            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return match_result
+            controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return match_result
           end
 
           it 're-prompt, and then passes the valid result to the on_complete block' do
@@ -278,8 +297,8 @@ describe Adhearsion::IVRController do
         context 'until it hits the maximum number of attempts' do
           context 'using the default of 3 attempts' do
             before do
-              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return result
-              controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice, interruptible: true).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return result
+              controller.should_receive(:ask).once.with(expected_prompts[2], grammar: expected_grammar, mode: :voice, interruptible: false).and_return result
             end
 
             it 'invokes the on_failure block' do
@@ -383,8 +402,8 @@ describe Adhearsion::IVRController do
 
       it 'should evaluate the prompt repeatedly in the context of the controller instance' do
         controller.should_receive(:ask).once.with('one', grammar: expected_grammar, mode: :voice, interruptible: true).and_return noinput_result
-        controller.should_receive(:ask).once.with('two', grammar: expected_grammar, mode: :voice, interruptible: true).and_return noinput_result
-        controller.should_receive(:ask).once.with('three', grammar: expected_grammar, mode: :voice, interruptible: true).and_return noinput_result
+        controller.should_receive(:ask).once.with('two', grammar: expected_grammar, mode: :voice, interruptible: false).and_return noinput_result
+        controller.should_receive(:ask).once.with('three', grammar: expected_grammar, mode: :voice, interruptible: false).and_return noinput_result
         controller.run
       end
     end
@@ -447,8 +466,8 @@ describe Adhearsion::IVRController do
 
       it 'should simply return the last result' do
         controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice, interruptible: true).and_return noinput_result
-        controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice, interruptible: true).and_return noinput_result
-        controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice, interruptible: true).and_return noinput_result
+        controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice, interruptible: false).and_return noinput_result
+        controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice, interruptible: false).and_return noinput_result
         controller.run.should be(noinput_result)
       end
     end
@@ -495,7 +514,7 @@ describe Adhearsion::IVRController do
       context 'with a different number of attempts than the default and failed input' do
         it 'plays the apology announcement after receiving the correct number of failed inputs' do
           controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice, interruptible: true).and_return noinput_result
-          controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: true).and_return noinput_result
+          controller.should_receive(:ask).once.with(expected_prompts[1], grammar: expected_grammar, mode: :voice, interruptible: false).and_return noinput_result
           controller.should_receive(:say).once.with apology_announcement
           controller.run
         end

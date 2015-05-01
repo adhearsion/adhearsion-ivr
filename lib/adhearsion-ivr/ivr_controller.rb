@@ -14,6 +14,14 @@ module Adhearsion
         @prompts ||= []
       end
 
+      def barge(val = nil)
+        if val.nil?
+          @barge || false
+        else
+          @barge = val
+        end
+      end
+
       # maximum number of attempts to prompt the caller for input
       def max_attempts(num = nil)
         if num
@@ -119,10 +127,10 @@ module Adhearsion
 
     def run
       @errors = 0
-      deliver_prompt
+      deliver_prompt true
     end
 
-    def deliver_prompt
+    def deliver_prompt(interruptible = self.class.barge)
       prompt = prompts[@errors] || prompts.last
       prompt = instance_exec(&prompt) if prompt.respond_to? :call
       logger.debug "Prompt: #{prompt.inspect}"
@@ -135,7 +143,7 @@ module Adhearsion
         fail NotImplementedError, 'You must override #grammar or #grammar_url and provide an input grammar'
       end
 
-      ask_options[:interruptible] = true
+      ask_options[:interruptible] = interruptible
       ask_options[:timeout] = timeout if timeout
 
       if output_options && renderer
