@@ -160,6 +160,18 @@ class I18nEscalatedPrompts < Adhearsion::IVRController
 end
 ```
 
+## Passing URLs for prompts
+
+You might want to pass an URL to an SSML document as a prompt. In that case, wrap the URL in the `#from_url` method and the rendering engine will fetch the prompt over HTTP instead of sending the full prompt over the wire.
+
+```
+# ...
+ prompts << -> { from_url('http://foobar.com/doc.ssml') }
+# ...
+```
+
+Use cases for `#from_url` include supporting long prompts on Asterisk, serving the SSML via [Virginia](https://github.com/polysics/virginia) and caching.
+
 ## Method overriding in subclasses
 
 If you need to set the configuration for the menu at runtime, `#prompts`, `#timeout`, `#max_attempts` and `renderer` can be defined on the subclass to provide the needed values, as you can see in the following example.
