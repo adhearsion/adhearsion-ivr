@@ -408,6 +408,33 @@ describe Adhearsion::IVRController do
       end
     end
 
+    context 'when the prompts are callable and use #fetch' do
+      let(:controller_class) do
+        Class.new(Adhearsion::IVRController) do
+          prompts << -> { from_url('http://thing.com/foo.ssml') }
+
+          on_complete do |result|
+          end
+
+          on_failure do
+          end
+
+          def grammar
+            :some_grammar
+          end
+        end
+      end
+
+      it 'should use the provided url' do
+        controller.should_receive(:ask).once.with(nil,
+          grammar: expected_grammar,
+          mode: :voice,
+          interruptible: true,
+          render_document: {url: 'http://thing.com/foo.ssml'}).and_return match_result
+        controller.run
+      end
+    end
+
     context 'when a grammar is referenced by url' do
       let(:test_grammar_url) { 'http://localhost/grammar.grxml' }
       let(:controller_class) do

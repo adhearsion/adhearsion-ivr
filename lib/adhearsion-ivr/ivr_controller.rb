@@ -133,6 +133,7 @@ module Adhearsion
     def deliver_prompt(interruptible = self.class.barge)
       prompt = prompts[@errors] || prompts.last
       prompt = instance_exec(&prompt) if prompt.respond_to? :call
+
       logger.debug "Prompt: #{prompt.inspect}"
 
       if grammar
@@ -155,6 +156,11 @@ module Adhearsion
       end
 
       ask_options[:input_options] = input_options if input_options
+
+      if prompt.is_a?(Hash) && prompt[:mode] == :url
+        ask_options.merge!({render_document: {url: prompt[:prompt]}})
+        prompt = nil
+      end
 
       @result = ask prompt, ask_options
       logger.debug "Got result #{@result.inspect}"
@@ -230,6 +236,11 @@ module Adhearsion
 
     def failure_callback
       instance_exec &self.class.failure_callback if self.class.failure_callback
+    end
+
+    # Indicates that the prompt should be fetched from the specified URL instead of sent in full
+    def from_url(prompt_url)
+      {mode: :url, prompt: prompt_url}
     end
   end
 end
