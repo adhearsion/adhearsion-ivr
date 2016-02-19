@@ -71,7 +71,14 @@ module Adhearsion
       def validate_input(&block)
         @validate_callback = block
       end
+      alias :on_validate :validate_input
       attr_reader :validate_callback
+
+      # called each time a prompt completes, whether or not there was input received
+      def on_response(&block)
+        @response_callback = block
+      end
+      attr_reader :response_callback
 
       # called when the caller successfully provides input
       def on_complete(&block)
@@ -114,6 +121,10 @@ module Adhearsion
 
       after_transition any => :prompting do |controller|
         controller.deliver_prompt
+      end
+
+      before_transition :prompting => any do |controller|
+        controller.response_callback
       end
 
       after_transition any => :complete do |controller|
@@ -224,10 +235,14 @@ module Adhearsion
 
     def validate_callback
       if self.class.validate_callback
-        instance_exec &self.class.validate_callback
+        instance_exec @result, &self.class.validate_callback
       else
         true
       end
+    end
+
+    def response_callback
+      instance_exec @result, &self.class.response_callback if self.class.response_callback
     end
 
     def completion_callback

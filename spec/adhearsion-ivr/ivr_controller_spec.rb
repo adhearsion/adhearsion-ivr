@@ -499,6 +499,77 @@ describe Adhearsion::IVRController do
       end
     end
 
+    context 'controller execution with callbacks' do
+      let(:controller_class) do
+        Class.new(Adhearsion::IVRController) do
+          prompts << 'Hello'
+
+          def grammar
+            :some_grammar
+          end
+        end
+      end
+
+      it 'should invoke the on_complete callback' do
+        canary = false
+        controller_class.on_complete do
+          canary = true
+        end
+
+        controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice, interruptible: true).and_return match_result
+        controller.run
+        canary.should be true
+      end
+
+      it 'should invoke the on_response callback with the result' do
+        canary = false
+        controller_class.on_response do |result|
+          canary = result
+        end
+
+        controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice, interruptible: true).and_return match_result
+        controller.run
+        canary.should be match_result
+      end
+
+      it 'should invoke the on_validate callback with the input result, pass validation, and be considered a successful match' do
+        validate_canary = false
+        controller_class.on_validate do |result|
+          validate_canary = result
+          true
+        end
+
+        success_canary = false
+        controller_class.on_complete do
+          success_canary = true
+        end
+
+        controller.should_receive(:ask).once.with('Hello', grammar: expected_grammar, mode: :voice, interruptible: true).and_return match_result
+        controller.run
+        validate_canary.should be match_result
+        success_canary.should be true
+      end
+
+      it 'should invoke the on_validate callback with the input result, fail validation, and be considered a no-match' do
+        validate_canary = false
+        controller_class.on_validate do |result|
+          validate_canary = result
+          false
+        end
+
+        failure_canary = false
+        controller_class.on_failure do
+          failure_canary = true
+        end
+
+        controller.should_receive(:ask).exactly(3).times.with('Hello', hash_including(grammar: expected_grammar, mode: :voice)).and_return match_result
+        controller.run
+        validate_canary.should be match_result
+        failure_canary.should be true
+      end
+
+    end
+
     context 'when the call is dead' do
       before { call.terminate }
 

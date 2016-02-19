@@ -225,6 +225,14 @@ class OverriddenPrompt < Adhearsion::IVRController
 end
 ```
 
+## Available Callbacks
+
+* `on_response` - Called each time a response is generated, whether valid, invalid, or no input at all.
+* `on_validate` - Called to verify that the matched input is valid, for example, if additional validation is needed beyond the grammar. Returning false here is treated like a `nomatch` result. Returning true will continue into the `on_success` callback.
+* `on_success` - Called whenever an input matches the supplied grammar.
+* `on_failure` - Called after all retries have been exhausted and the IVR is giving up. Useful for transferring to an operator, for example.
+* `on_error` - Called if an exception is encountered during execution. Also useful for transferring to an operator or other fail-safe logic.
+
 ## Credits
 
 Copyright (C) 2014 The Adhearsion Foundation
