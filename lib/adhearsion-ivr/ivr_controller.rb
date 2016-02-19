@@ -71,6 +71,7 @@ module Adhearsion
       def validate_input(&block)
         @validate_callback = block
       end
+      alias :on_validate :validate_input
       attr_reader :validate_callback
 
       # called each time a prompt completes, whether or not there was input received
@@ -234,7 +235,7 @@ module Adhearsion
 
     def validate_callback
       if self.class.validate_callback
-        instance_exec &self.class.validate_callback
+        instance_exec @result, &self.class.validate_callback
       else
         true
       end
