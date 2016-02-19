@@ -138,14 +138,19 @@ module Adhearsion
 
     def run
       @errors = 0
-      deliver_prompt true
+      deliver_prompt interruptible: true
     end
 
-    def deliver_prompt(interruptible = self.class.barge)
+    def deliver_prompt(interruptible: nil)
       prompt = prompts[@errors] || prompts.last
       prompt = instance_exec(&prompt) if prompt.respond_to? :call
 
       logger.debug "Prompt: #{prompt.inspect}"
+
+      if interruptible.nil?
+        interruptible = self.barge
+        @barge = nil
+      end
 
       if grammar
         ask_options = { grammar: grammar, mode: :voice }
@@ -203,6 +208,14 @@ module Adhearsion
 
     def prompts
       self.class.prompts
+    end
+
+    def barge(val = nil)
+      if val.nil?
+        @barge.nil? ? self.class.barge : @barge
+      else
+        @barge = val
+      end
     end
 
     def max_attempts
