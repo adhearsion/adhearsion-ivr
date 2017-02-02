@@ -21,15 +21,6 @@ module Adhearsion
         end
       end
 
-      # allow passing a grammar mode to MRCP for FS compatibility
-      def input_mode(val = nil)
-        if val.nil?
-          @input_mode || :voice
-        else
-          @input_mode = val
-        end
-      end
-
       # maximum number of attempts to prompt the caller for input
       def max_attempts(num = nil)
         if num
@@ -156,9 +147,9 @@ module Adhearsion
       logger.debug "Prompt: #{prompt.inspect}"
 
       if grammar
-        ask_options = { grammar: grammar, mode: self.class.input_mode }
+        ask_options = { grammar: grammar, mode: input_mode }
       elsif grammar_url
-        ask_options = { grammar_url: grammar_url, mode: self.class.input_mode }
+        ask_options = { grammar_url: grammar_url, mode: input_mode }
       else
         fail NotImplementedError, 'You must override #grammar or #grammar_url and provide an input grammar'
       end
@@ -264,6 +255,11 @@ module Adhearsion
     # Indicates that the prompt should be fetched from the specified URL instead of sent in full
     def from_url(prompt_url)
       {mode: :url, prompt: prompt_url}
+    end
+
+    # allow passing a grammar mode to MRCP for FS compatibility
+    def input_mode
+      :voice
     end
   end
 end

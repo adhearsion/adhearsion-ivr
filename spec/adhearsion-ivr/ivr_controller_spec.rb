@@ -736,8 +736,6 @@ describe Adhearsion::IVRController do
             prompts << prompt
           end
 
-          input_mode :any
-
           output_options expected_output_options
 
           on_complete do |result|
@@ -750,6 +748,10 @@ describe Adhearsion::IVRController do
 
           def grammar
             :some_grammar
+          end
+
+          def input_mode
+            :any
           end
         end
       end
