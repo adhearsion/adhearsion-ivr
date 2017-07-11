@@ -749,11 +749,15 @@ describe Adhearsion::IVRController do
           def grammar
             :some_grammar
           end
+
+          def input_mode
+            :any
+          end
         end
       end
 
       it 'passes the correct expected_input_options value to the #ask method' do
-        controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :voice, interruptible: true, output_options: expected_output_options).and_return match_result
+        controller.should_receive(:ask).once.with(expected_prompts[0], grammar: expected_grammar, mode: :any, interruptible: true, output_options: expected_output_options).and_return match_result
         controller.should_receive(:say).once.with "Let's go to Paris"
         controller.run
       end
