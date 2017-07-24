@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'state_machine'
+require 'adhearsion-asr'
 
 module Adhearsion
   class IVRController < Adhearsion::CallController
