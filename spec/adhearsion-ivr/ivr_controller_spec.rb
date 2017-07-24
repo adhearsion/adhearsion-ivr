@@ -63,7 +63,7 @@ describe Adhearsion::IVRController do
     end
 
     let(:match_result) do
-      Adhearsion::CallController::Input::Result.new.tap do |res|
+      AdhearsionASR::Result.new.tap do |res|
         res.status         = :match
         res.mode           = :voice
         res.confidence     = 1
@@ -74,7 +74,7 @@ describe Adhearsion::IVRController do
     end
 
     let(:noinput_result) do
-      Adhearsion::CallController::Input::Result.new.tap do |res|
+      AdhearsionASR::Result.new.tap do |res|
         res.status = :noinput
       end
     end
@@ -189,7 +189,7 @@ describe Adhearsion::IVRController do
 
       context 'that is a nomatch' do
         let(:result) do
-          Adhearsion::CallController::Input::Result.new.tap do |res|
+          AdhearsionASR::Result.new.tap do |res|
             res.status = :nomatch
           end
         end
@@ -272,7 +272,7 @@ describe Adhearsion::IVRController do
 
       context 'that fails validation' do
         let(:invalid_result) do
-          Adhearsion::CallController::Input::Result.new.tap do |res|
+          AdhearsionASR::Result.new.tap do |res|
             res.status         = :match
             res.mode           = :voice
             res.confidence     = 1
@@ -333,7 +333,7 @@ describe Adhearsion::IVRController do
         end
 
         let(:result) do
-          Adhearsion::CallController::Input::Result.new.tap do |res|
+          AdhearsionASR::Result.new.tap do |res|
             res.status = :hangup
           end
         end
@@ -367,7 +367,7 @@ describe Adhearsion::IVRController do
         end
 
         let(:result) do
-          Adhearsion::CallController::Input::Result.new.tap do |res|
+          AdhearsionASR::Result.new.tap do |res|
             res.status = :stop
           end
         end
@@ -453,6 +453,27 @@ describe Adhearsion::IVRController do
 
       it 'should call #ask with the correct option' do
         controller.should_receive(:ask).once.with('Hello', grammar_url: test_grammar_url, mode: :voice, interruptible: true).and_return noinput_result
+        controller.run
+      end
+    end
+
+    context 'when a DTMF limit is provided' do
+      let(:controller_class) do
+        Class.new(Adhearsion::IVRController) do
+          prompts << 'Hello'
+          max_attempts 1
+
+          on_failure do
+          end
+
+          def limit
+            1
+          end
+        end
+      end
+
+      it 'should call #ask with the correct option' do
+        controller.should_receive(:ask).once.with('Hello', limit: 1, interruptible: true).and_return noinput_result
         controller.run
       end
     end

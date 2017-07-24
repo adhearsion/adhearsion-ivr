@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require 'state_machine'
+require 'adhearsion-asr'
 
 module Adhearsion
   class IVRController < Adhearsion::CallController
@@ -147,9 +148,11 @@ module Adhearsion
       logger.debug "Prompt: #{prompt.inspect}"
 
       if grammar
-        ask_options = { grammar: grammar, mode: :voice }
+        ask_options = { grammar: grammar, mode: input_mode }
       elsif grammar_url
-        ask_options = { grammar_url: grammar_url, mode: :voice }
+        ask_options = { grammar_url: grammar_url, mode: input_mode }
+      elsif limit
+        ask_options = { limit: limit }
       else
         fail NotImplementedError, 'You must override #grammar or #grammar_url and provide an input grammar'
       end
@@ -190,6 +193,10 @@ module Adhearsion
         fail "Unrecognized result status: #{@result.status}"
       end
       @result
+    end
+
+    def limit
+      nil
     end
 
     def grammar
@@ -256,5 +263,10 @@ module Adhearsion
     def from_url(prompt_url)
       {mode: :url, prompt: prompt_url}
     end
+
+		# allow passing a grammar mode to MRCP for FS compatibility
+		def input_mode
+			:voice
+		end
   end
 end

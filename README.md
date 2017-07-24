@@ -170,7 +170,7 @@ You might want to pass an URL to an SSML document as a prompt. In that case, wra
 # ...
 ```
 
-Use cases for `#from_url` include supporting long prompts on Asterisk, serving the SSML via [Adhearsion's built-in HTTP server](https://github.com/adhearsion/adhearsion) and caching.
+Use cases for `#from_url` include supporting long prompts on Asterisk, serving the SSML via [Virginia](https://github.com/polysics/virginia) and caching.
 
 ## Method overriding in subclasses
 

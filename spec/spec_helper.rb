@@ -12,6 +12,8 @@ RSpec.configure do |config|
   config.backtrace_exclusion_patterns = [/rspec/]
 
   config.before do
-    Adhearsion.stub new_request_id: 'foo'
+    Punchblock.stub new_request_id: 'foo'
+
+    Adhearsion::Logging.start Adhearsion::Logging.default_appenders, :trace, Adhearsion.config.platform.logging.formatter
   end
 end
