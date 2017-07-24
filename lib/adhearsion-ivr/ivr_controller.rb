@@ -150,6 +150,8 @@ module Adhearsion
         ask_options = { grammar: grammar, mode: :voice }
       elsif grammar_url
         ask_options = { grammar_url: grammar_url, mode: :voice }
+      elsif limit
+        ask_options = { limit: limit }
       else
         fail NotImplementedError, 'You must override #grammar or #grammar_url and provide an input grammar'
       end
@@ -190,6 +192,10 @@ module Adhearsion
         fail "Unrecognized result status: #{@result.status}"
       end
       @result
+    end
+
+    def limit
+      nil
     end
 
     def grammar

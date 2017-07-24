@@ -457,6 +457,27 @@ describe Adhearsion::IVRController do
       end
     end
 
+    context 'when a DTMF limit is provided' do
+      let(:controller_class) do
+        Class.new(Adhearsion::IVRController) do
+          prompts << 'Hello'
+          max_attempts 1
+
+          on_failure do
+          end
+
+          def limit
+            1
+          end
+        end
+      end
+
+      it 'should call #ask with the correct option' do
+        controller.should_receive(:ask).once.with('Hello', limit: 1, interruptible: true).and_return noinput_result
+        controller.run
+      end
+    end
+
     context 'when no grammar is provided' do
       let(:controller_class) do
         Class.new(Adhearsion::IVRController) do
